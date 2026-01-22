@@ -1,0 +1,10 @@
+{
+  "network": "baseSepolia",
+  "deployer": "0x9be945aeC503C2893D38d9e9a9Ac299108D34b8e",
+  "timestamp": "2026-01-22T15:14:50.896Z",
+  "contracts": {
+    "UserProfile": "0x3DF13D3B413B816546d42b2f82b48461EfACffF9",
+    "ReputationSystem": "0xBb457F9Fe0F817b6E86533Aa10A57CD668404Eb0",
+    "MarketFactory": "0x51a9c60cE0aAf5a65DeCEae78723d75715bdcd7b"
+  }
+}
