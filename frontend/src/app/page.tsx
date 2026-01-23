@@ -1,3 +1,8 @@
+'use client';
+
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <div style={{
@@ -13,17 +18,12 @@ export default function Home() {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-          Weave Market
-        </h1>
-        <div style={{
-          padding: '0.5rem 1rem',
-          background: '#3b82f6',
-          borderRadius: '0.5rem',
-          cursor: 'pointer'
-        }}>
-          Connect Wallet
-        </div>
+        <Link href="/" style={{ textDecoration: 'none', color: 'white' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+            Weave Market
+          </h1>
+        </Link>
+        <ConnectButton />
       </header>
 
       <main style={{
@@ -51,18 +51,20 @@ export default function Home() {
           Decentralized prediction markets on Base Sepolia
         </p>
 
-        <div style={{
-          display: 'inline-block',
-          padding: '1rem 2rem',
-          background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
-          borderRadius: '0.5rem',
-          fontSize: '1.125rem',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          marginBottom: '4rem'
-        }}>
-          Get Started
-        </div>
+        <Link href="/markets" style={{ textDecoration: 'none' }}>
+          <div style={{
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+            borderRadius: '0.5rem',
+            fontSize: '1.125rem',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            marginBottom: '4rem'
+          }}>
+            Explore Markets
+          </div>
+        </Link>
 
         <div style={{
           display: 'grid',
