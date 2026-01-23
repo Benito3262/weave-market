@@ -1,16 +1,24 @@
 let provider, signer, userAddress;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if wallet was previously connected
+    const wasConnected = localStorage.getItem('walletConnected');
+    
+    if (wasConnected === 'true') {
+        // Auto-reconnect
+        connectWallet(true);
+    }
+    
     // Wait a bit for wallet extensions to load
     setTimeout(() => {
         const connectBtn = document.querySelector('.btn-primary');
         if (connectBtn && connectBtn.textContent.includes('Connect')) {
-            connectBtn.addEventListener('click', connectWallet);
+            connectBtn.addEventListener('click', () => connectWallet(false));
         }
     }, 500);
 });
 
-async function connectWallet() {
+async function connectWallet(autoConnect = false) {
     try {
         // Check for ethereum provider
         let ethereum = window.ethereum;
@@ -21,11 +29,13 @@ async function connectWallet() {
         }
         
         if (!ethereum) {
-            alert('Please install MetaMask to use this application!');
+            if (!autoConnect) {
+                alert('Please install MetaMask to use this application!');
+            }
             return;
         }
 
-        // First, request accounts
+        // Request accounts
         await ethereum.request({ method: 'eth_requestAccounts' });
         
         // Create provider
@@ -35,6 +45,12 @@ async function connectWallet() {
         
         // Check if on correct network
         if (network.chainId !== CONFIG.CHAIN_ID_DECIMAL) {
+            if (autoConnect) {
+                // Silent fail on auto-connect if wrong network
+                console.log('Wrong network on auto-connect');
+                return;
+            }
+            
             console.log('Wrong network, switching to Base Sepolia...');
             try {
                 // First try to switch
@@ -82,11 +98,16 @@ async function connectWallet() {
         
         console.log('Connected wallet:', userAddress);
         
+        // Save connection state
+        localStorage.setItem('walletConnected', 'true');
+        
         await updateUI();
         
     } catch (error) {
         console.error('Connection error:', error);
-        alert('Failed to connect wallet: ' + error.message);
+        if (!autoConnect) {
+            alert('Failed to connect wallet: ' + error.message);
+        }
     }
 }
 
@@ -112,7 +133,7 @@ async function updateUI() {
     try {
         const reputationContract = new window.ethers.Contract(
             CONFIG.CONTRACTS.ReputationSystem,
-            CONFIG.ABI.Reputation,
+            CONFIG.ABI.ReputationSystem,
             provider
         );
         
@@ -137,4 +158,23 @@ async function updateUI() {
             repValue.textContent = '1000';
         }
     }
+}
+
+// Listen for account changes
+if (window.ethereum) {
+    window.ethereum.on('accountsChanged', function (accounts) {
+        if (accounts.length === 0) {
+            // User disconnected
+            localStorage.removeItem('walletConnected');
+            location.reload();
+        } else {
+            // User switched accounts
+            location.reload();
+        }
+    });
+    
+    window.ethereum.on('chainChanged', function () {
+        // Reload on network change
+        location.reload();
+    });
 }
