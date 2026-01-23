@@ -1,6 +1,13 @@
 let provider, signer, userAddress;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if ethers loaded
+    if (typeof window.ethers === 'undefined') {
+        console.error('Ethers.js failed to load from CDN');
+        alert('Error loading required libraries. Please refresh the page.');
+        return;
+    }
+    
     const connectBtn = document.querySelector('.btn-primary');
     if (connectBtn && connectBtn.textContent.includes('Connect')) {
         connectBtn.addEventListener('click', connectWallet);
@@ -14,7 +21,7 @@ async function connectWallet() {
             return;
         }
 
-        provider = new ethers.providers.Web3Provider(window.ethereum);
+        provider = new window.ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         
         const network = await provider.getNetwork();
@@ -49,7 +56,7 @@ async function connectWallet() {
                 }
             }
             // Reconnect after network switch
-            provider = new ethers.providers.Web3Provider(window.ethereum);
+            provider = new window.ethers.providers.Web3Provider(window.ethereum);
         }
         
         signer = provider.getSigner();
@@ -85,7 +92,7 @@ async function updateUI() {
     
     // Fetch and display reputation
     try {
-        const reputationContract = new ethers.Contract(
+        const reputationContract = new window.ethers.Contract(
             CONFIG.CONTRACTS.ReputationSystem,
             CONFIG.ABI.Reputation,
             provider
