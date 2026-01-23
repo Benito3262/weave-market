@@ -1,12 +1,18 @@
 import './globals.css';
+
 export default function RootLayout({
-children,
+  children,
 }: {
-children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-return (
-
-{children}
-
-);
+  return (
+    <html lang="en">
+      <head>
+        <title>Weave Market</title>
+      </head>
+      <body>
+        {children}
+      </body>
+    </html>
+  );
 }
