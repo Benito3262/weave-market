@@ -1,17 +1,30 @@
 let provider, signer, userAddress;
 
-window.addEventListener('load', () => {
+function initApp() {
+    if (typeof ethers === 'undefined') {
+        setTimeout(initApp, 100);
+        return;
+    }
+    
     if (typeof window.ethereum === 'undefined') {
-        document.getElementById('walletAlert').innerHTML = 
-            '<strong>MetaMask not detected!</strong> Please install MetaMask.';
-        document.getElementById('walletAlert').className = 'alert alert-error';
+        const alert = document.getElementById('walletAlert');
+        if (alert) {
+            alert.innerHTML = '<strong>MetaMask not detected!</strong> Please install MetaMask.';
+            alert.className = 'alert alert-error';
+        }
     }
     
     const connectBtn = document.getElementById('connectBtn');
     if (connectBtn) {
         connectBtn.addEventListener('click', connectWallet);
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 async function connectWallet() {
     try {
@@ -51,7 +64,7 @@ async function connectWallet() {
         signer = provider.getSigner();
         userAddress = await signer.getAddress();
         
-        updateUI();
+        await updateUI();
         
         const walletAlert = document.getElementById('walletAlert');
         const appContent = document.getElementById('appContent');
@@ -115,6 +128,5 @@ function disconnectWallet() {
     provider = null;
     signer = null;
     userAddress = null;
-    
     window.location.reload();
 }
