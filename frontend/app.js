@@ -25,41 +25,55 @@ async function connectWallet() {
             return;
         }
 
-        provider = new window.ethers.providers.Web3Provider(ethereum);
-        await provider.send("eth_requestAccounts", []);
+        // First, request accounts
+        await ethereum.request({ method: 'eth_requestAccounts' });
         
+        // Create provider
+        provider = new window.ethers.providers.Web3Provider(ethereum);
         const network = await provider.getNetwork();
-        console.log('Connected to network:', network.chainId);
+        console.log('Current network:', network.chainId);
         
         // Check if on correct network
         if (network.chainId !== CONFIG.CHAIN_ID_DECIMAL) {
+            console.log('Wrong network, switching to Base Sepolia...');
             try {
+                // First try to switch
                 await ethereum.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: CONFIG.CHAIN_ID }],
                 });
+                console.log('Switched to Base Sepolia');
             } catch (switchError) {
-                // Network doesn't exist, add it
-                if (switchError.code === 4902) {
-                    await ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: CONFIG.CHAIN_ID,
-                            chainName: 'Base Sepolia',
-                            nativeCurrency: { 
-                                name: 'ETH', 
-                                symbol: 'ETH', 
-                                decimals: 18 
-                            },
-                            rpcUrls: ['https://sepolia.base.org'],
-                            blockExplorerUrls: ['https://sepolia.basescan.org']
-                        }]
-                    });
+                console.log('Switch error:', switchError);
+                // If network doesn't exist (error 4902), add it
+                if (switchError.code === 4902 || switchError.code === -32603) {
+                    console.log('Adding Base Sepolia network...');
+                    try {
+                        await ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: CONFIG.CHAIN_ID,
+                                chainName: 'Base Sepolia Testnet',
+                                nativeCurrency: { 
+                                    name: 'Sepolia Ether', 
+                                    symbol: 'ETH', 
+                                    decimals: 18 
+                                },
+                                rpcUrls: ['https://sepolia.base.org'],
+                                blockExplorerUrls: ['https://sepolia.basescan.org']
+                            }]
+                        });
+                        console.log('Base Sepolia added successfully');
+                    } catch (addError) {
+                        console.error('Error adding network:', addError);
+                        throw new Error('Failed to add Base Sepolia network. Please add it manually in MetaMask.');
+                    }
                 } else {
                     throw switchError;
                 }
             }
-            // Reconnect after network switch
+            
+            // Recreate provider after network change
             provider = new window.ethers.providers.Web3Provider(ethereum);
         }
         
