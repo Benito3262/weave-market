@@ -1,27 +1,31 @@
 let provider, signer, userAddress;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if ethers loaded
-    if (typeof window.ethers === 'undefined') {
-        console.error('Ethers.js failed to load from CDN');
-        alert('Error loading required libraries. Please refresh the page.');
-        return;
-    }
-    
-    const connectBtn = document.querySelector('.btn-primary');
-    if (connectBtn && connectBtn.textContent.includes('Connect')) {
-        connectBtn.addEventListener('click', connectWallet);
-    }
+    // Wait a bit for wallet extensions to load
+    setTimeout(() => {
+        const connectBtn = document.querySelector('.btn-primary');
+        if (connectBtn && connectBtn.textContent.includes('Connect')) {
+            connectBtn.addEventListener('click', connectWallet);
+        }
+    }, 500);
 });
 
 async function connectWallet() {
     try {
-        if (typeof window.ethereum === 'undefined') {
+        // Check for ethereum provider
+        let ethereum = window.ethereum;
+        
+        // If multiple wallets, try to get MetaMask specifically
+        if (window.ethereum?.providers) {
+            ethereum = window.ethereum.providers.find(p => p.isMetaMask);
+        }
+        
+        if (!ethereum) {
             alert('Please install MetaMask to use this application!');
             return;
         }
 
-        provider = new window.ethers.providers.Web3Provider(window.ethereum);
+        provider = new window.ethers.providers.Web3Provider(ethereum);
         await provider.send("eth_requestAccounts", []);
         
         const network = await provider.getNetwork();
@@ -30,14 +34,14 @@ async function connectWallet() {
         // Check if on correct network
         if (network.chainId !== CONFIG.CHAIN_ID_DECIMAL) {
             try {
-                await window.ethereum.request({
+                await ethereum.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: CONFIG.CHAIN_ID }],
                 });
             } catch (switchError) {
                 // Network doesn't exist, add it
                 if (switchError.code === 4902) {
-                    await window.ethereum.request({
+                    await ethereum.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
                             chainId: CONFIG.CHAIN_ID,
@@ -56,7 +60,7 @@ async function connectWallet() {
                 }
             }
             // Reconnect after network switch
-            provider = new window.ethers.providers.Web3Provider(window.ethereum);
+            provider = new window.ethers.providers.Web3Provider(ethereum);
         }
         
         signer = provider.getSigner();
