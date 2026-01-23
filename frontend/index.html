@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weave Market - Decentralized Predictions</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Add ethers.js library -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -16,7 +18,14 @@
                 <a href="create.html">Create</a>
                 <a href="profile.html">Profile</a>
             </nav>
-            <button class="btn-primary">Connect Wallet</button>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="reputation-score" style="padding: 8px 16px; display: none;" id="reputationDisplay">
+                    <span class="rep-label" style="font-size: 12px;">Reputation: </span>
+                    <span class="rep-value" style="font-size: 18px;">1000</span>
+                </div>
+                <span class="wallet-address" style="display: none; color: #666; font-size: 14px;"></span>
+                <button class="btn-primary">Connect Wallet</button>
+            </div>
         </header>
 
         <main class="hero">
@@ -46,5 +55,9 @@
             </div>
         </section>
     </div>
+
+    <!-- Load config first, then app.js -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
