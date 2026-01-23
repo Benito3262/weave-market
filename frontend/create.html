@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Market - Weave Market</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🧵 Weave Market</div>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="markets.html">Markets</a>
+                <a href="create.html" class="active">Create</a>
+                <a href="profile.html">Profile</a>
+            </nav>
+            <button class="btn-primary">Connect Wallet</button>
+        </header>
+
+        <main>
+            <div class="create-container">
+                <div class="create-card">
+                    <h1>Suggest New Market</h1>
+                    <p class="subtitle">Create a prediction market and stake your reputation</p>
+
+                    <form class="create-form">
+                        <div class="form-group">
+                            <label for="question">Market Question *</label>
+                            <input type="text" id="question" placeholder="Will Bitcoin reach $100k by end of 2026?" required>
+                            <small>Ask a clear yes/no question</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description *</label>
+                            <textarea id="description" rows="4" placeholder="Provide resolution criteria and details..." required></textarea>
+                            <small>Explain how the market will be resolved</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="endDate">Resolution Date *</label>
+                                <input type="datetime-local" id="endDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="stake">Your Stake (ETH) *</label>
+                                <input type="number" id="stake" step="0.001" min="0.001" placeholder="0.01" required>
+                                <small>Minimum 0.001 ETH</small>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <div class="info-icon">ℹ️</div>
+                            <div class="info-text">
+                                <strong>Requirements:</strong>
+                                <ul>
+                                    <li>Minimum reputation: 500 points</li>
+                                    <li>Stake will be locked until market resolution</li>
+                                    <li>Market must be approved by team</li>
+                                    <li>Earn +10 reputation for approved markets</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-large btn-full">Submit Market Suggestion</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
