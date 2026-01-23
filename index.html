@@ -38,7 +38,7 @@
             -webkit-text-fill-color: transparent;
         }
         
-        .header-right { display: flex; gap: 15px; align-items: center; }
+        .header-right { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         
         .reputation-badge {
             background: linear-gradient(135deg, #ffd89b, #19547b);
@@ -62,9 +62,10 @@
             color: white;
         }
         
-        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
         
         .btn-secondary { background: #f5f5f5; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
         
         .nav-tabs {
             display: flex;
@@ -73,6 +74,7 @@
             background: white;
             padding: 10px;
             border-radius: 10px;
+            flex-wrap: wrap;
         }
         
         .nav-tab {
@@ -83,6 +85,7 @@
             cursor: pointer;
             font-weight: 600;
             color: #666;
+            transition: all 0.3s;
         }
         
         .nav-tab.active {
@@ -115,7 +118,7 @@
             transition: all 0.3s;
         }
         
-        .market-card:hover { transform: translateY(-5px); }
+        .market-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
         
         .market-title {
             font-size: 18px;
@@ -128,6 +131,7 @@
             color: #6b7280;
             margin-bottom: 15px;
             font-size: 14px;
+            line-height: 1.5;
         }
         
         .market-stats {
@@ -140,8 +144,8 @@
         }
         
         .stat { text-align: center; }
-        .stat-label { font-size: 12px; color: #6b7280; }
-        .stat-value { font-size: 18px; font-weight: 700; }
+        .stat-label { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
+        .stat-value { font-size: 18px; font-weight: 700; color: #1f2937; }
         
         .outcome-buttons { display: flex; gap: 10px; margin-top: 15px; }
         
@@ -153,8 +157,10 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.3s;
         }
         
+        .outcome-btn:hover { border-color: #667eea; background: #f3f4f6; }
         .outcome-btn.yes { border-color: #10b981; color: #10b981; }
         .outcome-btn.no { border-color: #ef4444; color: #ef4444; }
         
@@ -166,11 +172,14 @@
             border-radius: 8px;
             font-size: 14px;
             width: 100%;
+            font-family: inherit;
         }
         
+        input:focus, textarea:focus { outline: none; border-color: #667eea; }
+        
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        textarea { min-height: 100px; font-family: inherit; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; }
+        textarea { min-height: 100px; resize: vertical; }
         
         .loading { text-align: center; padding: 40px; color: #6b7280; }
         
@@ -184,18 +193,12 @@
             margin: 0 auto 15px;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .alert-info { background: #dbeafe; color: #1e40af; }
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
         
         .status-badge {
             display: inline-block;
@@ -211,6 +214,11 @@
         
         .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
         .empty-state-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+        
+        @media (max-width: 768px) {
+            .market-grid { grid-template-columns: 1fr; }
+            header { flex-direction: column; text-align: center; }
+        }
     </style>
 </head>
 <body>
@@ -227,20 +235,20 @@
         </header>
 
         <div id="walletAlert" class="alert alert-info" style="display:none;">
-            Please connect your wallet and make sure you're on Base Sepolia network.
+            Please connect your wallet and switch to Base Sepolia network.
         </div>
 
         <div id="appContent" style="display:none;">
             <div class="nav-tabs">
-                <button class="nav-tab active" onclick="showTab('markets')">Markets</button>
-                <button class="nav-tab" onclick="showTab('create')">Create Market</button>
-                <button class="nav-tab" onclick="showTab('profile')">Profile</button>
+                <button class="nav-tab active" onclick="showTab('markets', event)">Markets</button>
+                <button class="nav-tab" onclick="showTab('create', event)">Create Market</button>
+                <button class="nav-tab" onclick="showTab('profile', event)">Profile</button>
             </div>
 
             <div id="marketsTab" class="content-section active">
                 <div id="marketsLoading" class="loading">
                     <div class="spinner"></div>
-                    Loading markets...
+                    <p>Loading markets...</p>
                 </div>
                 <div id="marketsContainer" class="market-grid" style="display:none;"></div>
                 <div id="marketsEmpty" class="empty-state" style="display:none;">
@@ -253,14 +261,17 @@
             <div id="createTab" class="content-section">
                 <div class="card">
                     <h2 style="margin-bottom: 20px;">Create New Market</h2>
-                    <form id="createMarketForm">
+                    <p style="color: #6b7280; margin-bottom: 30px;">
+                        Create a prediction market and stake your reputation. Your stake will be locked until market resolution.
+                    </p>
+                    <form id="createMarketForm" onsubmit="createMarket(event)">
                         <div class="form-group">
                             <label>Market Question *</label>
-                            <input type="text" id="marketQuestion" placeholder="Will Bitcoin reach $100k by 2026?" required>
+                            <input type="text" id="marketQuestion" placeholder="Will Bitcoin reach $100k by end of 2026?" required>
                         </div>
                         <div class="form-group">
                             <label>Description *</label>
-                            <textarea id="marketDescription" placeholder="Details and resolution criteria..." required></textarea>
+                            <textarea id="marketDescription" placeholder="Provide details about resolution criteria..." required></textarea>
                         </div>
                         <div class="form-group">
                             <label>Resolution Date *</label>
@@ -269,6 +280,9 @@
                         <div class="form-group">
                             <label>Your Stake (ETH) *</label>
                             <input type="number" id="creatorStake" step="0.001" min="0.001" placeholder="0.01" required>
+                            <small style="color: #6b7280; display: block; margin-top: 5px;">
+                                Minimum 0.001 ETH required
+                            </small>
                         </div>
                         <button type="submit" class="btn-primary" style="width: 100%;">Create Market</button>
                     </form>
@@ -277,10 +291,11 @@
 
             <div id="profileTab" class="content-section">
                 <div class="card">
-                    <h2>My Profile</h2>
+                    <h2 style="margin-bottom: 20px;">My Profile</h2>
                     <div style="margin-top: 20px;">
-                        <p><strong>Address:</strong> <span id="profileAddress"></span></p>
-                        <p><strong>Reputation:</strong> <span id="profileReputation">1000</span></p>
+                        <p style="margin-bottom: 15px;"><strong>Address:</strong> <span id="profileAddress">-</span></p>
+                        <p style="margin-bottom: 15px;"><strong>Reputation:</strong> <span id="profileReputation">1000</span></p>
+                        <p style="margin-bottom: 15px;"><strong>Network:</strong> Base Sepolia Testnet</p>
                     </div>
                 </div>
             </div>
@@ -295,6 +310,7 @@
         };
 
         const BASE_SEPOLIA_CHAIN_ID = "0x14a34";
+        const BASE_SEPOLIA_CHAIN_ID_DECIMAL = 84532;
 
         const ABIS = {
             MarketFactory: [
@@ -315,24 +331,30 @@
             ]
         };
 
-        let provider, signer, userAddress, contracts = {};
+        let provider, signer, userAddress;
+        let contracts = {};
 
         window.addEventListener('load', () => {
             if (typeof window.ethereum !== 'undefined') {
                 checkConnection();
             } else {
-                document.getElementById('walletAlert').innerHTML = 'MetaMask not detected!';
+                showAlert('MetaMask not detected! Please install MetaMask to use this dApp.', 'error');
                 document.getElementById('walletAlert').style.display = 'block';
             }
         });
 
         async function connectWallet() {
             try {
+                if (typeof window.ethereum === 'undefined') {
+                    showAlert('Please install MetaMask!', 'error');
+                    return;
+                }
+
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 await provider.send("eth_requestAccounts", []);
                 
                 const network = await provider.getNetwork();
-                if (network.chainId !== 84532) {
+                if (network.chainId !== BASE_SEPOLIA_CHAIN_ID_DECIMAL) {
                     try {
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
@@ -340,16 +362,24 @@
                         });
                     } catch (switchError) {
                         if (switchError.code === 4902) {
-                            await window.ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [{
-                                    chainId: BASE_SEPOLIA_CHAIN_ID,
-                                    chainName: 'Base Sepolia',
-                                    nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                                    rpcUrls: ['https://sepolia.base.org'],
-                                    blockExplorerUrls: ['https://sepolia.basescan.org']
-                                }]
-                            });
+                            try {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: BASE_SEPOLIA_CHAIN_ID,
+                                        chainName: 'Base Sepolia',
+                                        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                        rpcUrls: ['https://sepolia.base.org'],
+                                        blockExplorerUrls: ['https://sepolia.basescan.org']
+                                    }]
+                                });
+                            } catch (addError) {
+                                showAlert('Failed to add Base Sepolia network', 'error');
+                                return;
+                            }
+                        } else {
+                            showAlert('Please switch to Base Sepolia network', 'error');
+                            return;
                         }
                     }
                     provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -359,7 +389,7 @@
                 userAddress = await signer.getAddress();
                 
                 contracts.marketFactory = new ethers.Contract(CONTRACTS.MarketFactory, ABIS.MarketFactory, signer);
-                contracts.reputation = new ethers.Contract(CONTRACTS.ReputationSystem, ABIS.ReputationSystem, signer);
+                contracts.reputation = new ethers.Contract(CONTRACTS.ReputationSystem, ABIS.ReputationSystem, provider);
                 
                 updateUI();
                 loadMarkets();
@@ -370,9 +400,12 @@
                 document.getElementById('appContent').style.display = 'block';
                 document.getElementById('reputationBadge').style.display = 'block';
                 
+                showAlert('Wallet connected successfully!', 'success');
+                setTimeout(() => hideAlert(), 3000);
+                
             } catch (error) {
                 console.error('Connection error:', error);
-                alert('Failed to connect wallet');
+                showAlert('Failed to connect wallet: ' + error.message, 'error');
             }
         }
 
@@ -385,8 +418,13 @@
             document.getElementById('connectBtn').style.display = 'block';
             document.getElementById('disconnectBtn').style.display = 'none';
             document.getElementById('appContent').style.display = 'none';
-            document.getElementById('walletAlert').style.display = 'block';
             document.getElementById('reputationBadge').style.display = 'none';
+            
+            showAlert('Wallet disconnected', 'info');
+            setTimeout(() => {
+                document.getElementById('walletAlert').style.display = 'block';
+                hideAlert();
+            }, 1000);
         }
 
         async function checkConnection() {
@@ -401,7 +439,7 @@
         }
 
         async function updateUI() {
-            const shortAddress = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+            const shortAddress = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
             document.getElementById('profileAddress').textContent = shortAddress;
             
             try {
@@ -433,12 +471,14 @@
                 for (const address of marketAddresses) {
                     const marketContract = new ethers.Contract(address, ABIS.Market, provider);
                     
-                    const question = await marketContract.question();
-                    const description = await marketContract.description();
-                    const resolutionTime = await marketContract.resolutionTime();
-                    const isResolved = await marketContract.isResolved();
-                    const totalYes = await marketContract.totalYesShares();
-                    const totalNo = await marketContract.totalNoShares();
+                    const [question, description, resolutionTime, isResolved, totalYes, totalNo] = await Promise.all([
+                        marketContract.question(),
+                        marketContract.description(),
+                        marketContract.resolutionTime(),
+                        marketContract.isResolved(),
+                        marketContract.totalYesShares(),
+                        marketContract.totalNoShares()
+                    ]);
                     
                     const marketCard = createMarketCard({
                         address,
@@ -458,7 +498,8 @@
                 
             } catch (error) {
                 console.error('Error loading markets:', error);
-                document.getElementById('marketsLoading').innerHTML = '<p style="color: #ef4444;">Error loading markets</p>';
+                document.getElementById('marketsLoading').innerHTML = 
+                    '<p style="color: #ef4444;">Error loading markets. Please refresh the page.</p>';
             }
         }
 
@@ -475,8 +516,8 @@
             
             card.innerHTML = `
                 <div class="status-badge ${statusClass}">${statusText}</div>
-                <h3 class="market-title">${market.question}</h3>
-                <p class="market-description">${market.description}</p>
+                <h3 class="market-title">${escapeHtml(market.question)}</h3>
+                <p class="market-description">${escapeHtml(market.description)}</p>
                 
                 <div class="market-stats">
                     <div class="stat">
@@ -494,7 +535,7 @@
                 </div>
                 
                 <div style="font-size: 12px; color: #6b7280; margin-bottom: 15px;">
-                    Resolves: ${market.resolutionTime.toLocaleDateString()}
+                    Resolves: ${market.resolutionTime.toLocaleDateString()} ${market.resolutionTime.toLocaleTimeString()}
                 </div>
                 
                 ${!market.isResolved ? `
@@ -505,7 +546,7 @@
                         <button class="outcome-btn yes" onclick="placeBet('${market.address}', true)">Bet YES</button>
                         <button class="outcome-btn no" onclick="placeBet('${market.address}', false)">Bet NO</button>
                     </div>
-                ` : '<p style="text-align: center; color: #6b7280;">Market resolved</p>'}
+                ` : '<p style="text-align: center; color: #6b7280; margin-top: 10px;">Market has been resolved</p>'}
             `;
             
             return card;
@@ -513,11 +554,11 @@
 
         async function placeBet(marketAddress, outcome) {
             try {
-                const input = document.getElementById(`bet-${marketAddress}`);
+                const input = document.getElementById('bet-' + marketAddress);
                 const amount = input.value;
                 
                 if (!amount || parseFloat(amount) <= 0) {
-                    alert('Please enter a valid bet amount');
+                    showAlert('Please enter a valid bet amount', 'error');
                     return;
                 }
                 
@@ -526,21 +567,24 @@
                     value: ethers.utils.parseEther(amount)
                 });
                 
-                alert('Transaction submitted! Waiting for confirmation...');
+                showAlert('Transaction submitted! Waiting for confirmation...', 'info');
                 await tx.wait();
                 
-                alert('Bet placed successfully!');
+                showAlert('Bet placed successfully!', 'success');
                 input.value = '';
-                loadMarkets();
+                setTimeout(() => {
+                    loadMarkets();
+                    hideAlert();
+                }, 2000);
                 
             } catch (error) {
                 console.error('Error placing bet:', error);
-                alert('Failed to place bet: ' + (error.reason || error.message));
+                showAlert('Failed to place bet: ' + (error.reason || error.message), 'error');
             }
         }
 
-        document.getElementById('createMarketForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function createMarket(event) {
+            event.preventDefault();
             
             try {
                 const question = document.getElementById('marketQuestion').value;
@@ -549,7 +593,7 @@
                 const stake = document.getElementById('creatorStake').value;
                 
                 if (resolutionDate <= new Date()) {
-                    alert('Resolution date must be in the future');
+                    showAlert('Resolution date must be in the future', 'error');
                     return;
                 }
                 
@@ -562,37 +606,63 @@
                     { value: ethers.utils.parseEther(stake) }
                 );
                 
-                alert('Creating market... Please wait.');
+                showAlert('Creating market... Please wait for confirmation.', 'info');
                 await tx.wait();
                 
-                alert('Market created successfully!');
+                showAlert('Market created successfully!', 'success');
                 document.getElementById('createMarketForm').reset();
-                showTab('markets');
-                loadMarkets();
+                
+                setTimeout(() => {
+                    showTab('markets', { target: document.querySelectorAll('.nav-tab')[0] });
+                    loadMarkets();
+                    hideAlert();
+                }, 2000);
                 
             } catch (error) {
                 console.error('Error creating market:', error);
-                alert('Failed to create market: ' + (error.reason || error.message));
+                showAlert('Failed to create market: ' + (error.reason || error.message), 'error');
             }
-        });
+        }
 
-        function showTab(tabName) {
+        function showTab(tabName, event) {
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             
             document.getElementById(tabName + 'Tab').classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             
             if (tabName === 'markets') loadMarkets();
         }
 
+        function showAlert(message, type) {
+            const alert = document.getElementById('walletAlert');
+            alert.className = 'alert alert-' + type;
+            alert.textContent = message;
+            alert.style.display = 'block';
+        }
+
+        function hideAlert() {
+            document.getElementById('walletAlert').style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         if (window.ethereum) {
             window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length === 0) disconnectWallet();
-                else connectWallet();
+                if (accounts.length === 0) {
+                    disconnectWallet();
+                } else {
+                    connectWallet();
+                }
             });
             
-            window.ethereum.on('chainChanged', () => window.location.reload());
+            window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+            });
         }
     </script>
 </body>
